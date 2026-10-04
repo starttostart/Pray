@@ -48,6 +48,7 @@
     $('tz').value = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
     restore();
+    initMap();
 
     $('search').addEventListener('click', searchCity);
     $('city').addEventListener('keydown', function (e) {
@@ -110,21 +111,84 @@
     state.placeName = [r.name, r.country].filter(Boolean).join(', ');
     $('city').value = state.placeName;
     $('results').hidden = true;
+    placeMarker(r.latitude, r.longitude, true);
     refreshPreview();
   }
 
   function geolocate() {
     if (!navigator.geolocation) { showError('Your browser cannot share its location. Enter coordinates instead.'); return; }
     navigator.geolocation.getCurrentPosition(function (pos) {
-      $('lat').value = round(pos.coords.latitude);
-      $('lon').value = round(pos.coords.longitude);
       $('tz').value = Intl.DateTimeFormat().resolvedOptions().timeZone || $('tz').value;
-      state.placeName = 'My location';
-      $('city').value = '';
-      refreshPreview();
+      pickFromMap(pos.coords.latitude, pos.coords.longitude);
+      if (state.map) state.map.setView([pos.coords.latitude, pos.coords.longitude], 10);
     }, function (err) {
       showError('Could not get your location: ' + err.message);
     });
+  }
+
+  // ---- Map picker ----
+
+  function initMap() {
+    if (!window.L) {
+      $('map').classList.add('unavailable');
+      $('map-hint').hidden = true;
+      return;
+    }
+    var lat = parseFloat($('lat').value);
+    var lon = parseFloat($('lon').value);
+    var has = !isNaN(lat) && !isNaN(lon);
+    state.map = L.map('map', { worldCopyJump: true }).setView(has ? [lat, lon] : [25, 30], has ? 9 : 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(state.map);
+    if (has) placeMarker(lat, lon, false);
+    state.map.on('click', function (e) { pickFromMap(e.latlng.lat, e.latlng.lng); });
+  }
+
+  function placeMarker(lat, lon, pan) {
+    if (!state.map) return;
+    if (state.marker) state.marker.setLatLng([lat, lon]);
+    else state.marker = L.marker([lat, lon]).addTo(state.map);
+    if (pan) state.map.setView([lat, lon], Math.max(state.map.getZoom(), 9));
+  }
+
+  // Clicking the map sets the coordinates right away, then looks up the
+  // place's time zone and name so times and the event location are right.
+  function pickFromMap(lat, lon) {
+    lon = ((lon + 540) % 360) - 180; // wrap longitudes from a scrolled world copy
+    $('lat').value = round(lat);
+    $('lon').value = round(lon);
+    placeMarker(lat, lon, false);
+    state.placeName = round(lat) + ', ' + round(lon);
+    $('city').value = '';
+    refreshPreview();
+    var pick = state.pick = {};
+
+    fetch('https://api.open-meteo.com/v1/forecast?forecast_days=1&timezone=auto&latitude=' + lat + '&longitude=' + lon)
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (pick !== state.pick || !d || !d.timezone || d.timezone === 'GMT') return;
+        $('tz').value = d.timezone;
+        refreshPreview();
+      })
+      .catch(function () { /* keep the current time zone */ });
+
+    fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=en&lat=' + lat + '&lon=' + lon)
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (pick !== state.pick || !d || !d.address) return;
+        var a = d.address;
+        var town = a.city || a.town || a.village || a.municipality || a.county || a.state;
+        if (town || a.country) {
+          state.placeName = [town, a.country].filter(Boolean).join(', ');
+          $('city').value = state.placeName;
+        }
+        var cc = (a.country_code || '').toUpperCase();
+        if (METHOD_BY_COUNTRY[cc]) $('method').value = METHOD_BY_COUNTRY[cc];
+        refreshPreview();
+      })
+      .catch(function () { /* keep the coordinates as the name */ });
   }
 
   function round(x) { return Math.round(x * 10000) / 10000; }
@@ -234,7 +298,7 @@
   }
 
   function slug(s) {
-    return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'location';
+    return String(s).normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'location';
   }
 
   function showError(msg) { $('error').textContent = msg; $('error').hidden = false; }

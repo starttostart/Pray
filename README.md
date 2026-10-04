@@ -5,15 +5,15 @@ A static web page that turns daily prayer times into a calendar file (.ics) you 
 
 ## Use it
 
-1. Search for a city (or use your location, or type latitude, longitude and time zone).
-2. Pick a calculation method, the Asr setting and a date range.
+1. Choose where you will be: search for a city, click the map, use your current location, or type latitude, longitude and time zone.
+2. Pick a calculation method, the Asr setting and the dates you will be there (for example, the days of a trip).
 3. Choose which prayers to block, how long to block for, and the reminder.
 4. Download the .ics file and import it into Outlook:
    - **Outlook on the web / new Outlook:** Calendar > Add calendar > Upload from file.
    - **Classic Outlook for Windows:** File > Open & Export > Import/Export > Import an iCalendar (.ics) or vCalendar file > Import.
    - **Outlook for Mac:** File > Import, or drag the file onto the calendar.
 
-Prayer times are computed in the browser with [adhan-js](https://github.com/batoulapps/adhan-js) (vendored in `vendor/`). City search uses the free [Open-Meteo geocoding API](https://open-meteo.com/en/docs/geocoding-api). Nothing else leaves your browser.
+Prayer times are computed in the browser with [adhan-js](https://github.com/batoulapps/adhan-js) (vendored in `vendor/`). City search and the time zone for a map click use the free [Open-Meteo](https://open-meteo.com/) APIs, the place name for a map click comes from OpenStreetMap's Nominatim, and the map is [Leaflet](https://leafletjs.com/) with OpenStreetMap tiles. If those services are unreachable, you can still type coordinates and a time zone.
 
 ## Run locally
 

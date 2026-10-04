@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pray: prayer times for Outlook</title>
   <meta name="description" content="Turn daily prayer times into calendar events that block your Outlook calendar.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main>
     <header>
       <h1>Pray</h1>
-      <p class="lede">Block your calendar for prayer. Pick a place and a date range, then download a calendar file that Outlook imports as Busy events with a reminder.</p>
+      <p class="lede">Block your calendar for prayer. Pick where you will be and the dates you will be there, then download a calendar file that Outlook imports as Busy events with a reminder.</p>
     </header>
 
     <form id="form" novalidate>
@@ -25,6 +26,8 @@
           <button type="button" id="geolocate" class="secondary">Use my location</button>
         </div>
         <ul id="results" class="results" hidden></ul>
+        <div id="map" class="map" aria-label="Map: click to choose a place"></div>
+        <p class="hint" id="map-hint">Or click the map to choose the place you will be.</p>
         <div class="row">
           <label>Latitude <input id="lat" type="number" step="any" min="-90" max="90" required></label>
           <label>Longitude <input id="lon" type="number" step="any" min="-180" max="180" required></label>
@@ -57,6 +60,7 @@
 
       <fieldset>
         <legend>Dates</legend>
+        <p class="hint">Only these days get blocked, so you can make a file just for a trip.</p>
         <div class="row">
           <label>From <input id="start" type="date" required></label>
           <label>To <input id="end" type="date" required></label>
@@ -102,10 +106,11 @@
         <li><strong>Classic Outlook for Windows:</strong> File, then Open &amp; Export, then Import/Export, then "Import an iCalendar (.ics) or vCalendar file". Choose Import to put the events in your main calendar so they show as Busy to others.</li>
         <li><strong>Outlook for Mac:</strong> File, then Import, or drag the file onto the calendar.</li>
       </ul>
-      <p class="hint">Re-importing the same dates for the same place updates the existing events rather than duplicating them in Outlook clients that honour event IDs. Times are computed in your browser with <a href="https://github.com/batoulapps/adhan-js">adhan-js</a>; city search uses the <a href="https://open-meteo.com/en/docs/geocoding-api">Open-Meteo geocoding API</a>.</p>
+      <p class="hint">Re-importing the same dates for the same place updates the existing events rather than duplicating them in Outlook clients that honour event IDs. Times are computed in your browser with <a href="https://github.com/batoulapps/adhan-js">adhan-js</a>; city search and time zone lookup use <a href="https://open-meteo.com/">Open-Meteo</a>; the map uses <a href="https://leafletjs.com/">Leaflet</a> and <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>.</p>
     </section>
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="vendor/adhan.umd.min.js"></script>
   <script src="prayer-ics.js"></script>
   <script src="app.js"></script>

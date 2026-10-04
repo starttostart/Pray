@@ -1,0 +1,12 @@
+{
+  "name": "pray",
+  "private": true,
+  "description": "Turn prayer times into an .ics file that blocks your Outlook calendar.",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "test": "node --test test/*.test.js"
+  },
+  "devDependencies": {
+    "ical.js": "^2.1.0"
+  }
+}

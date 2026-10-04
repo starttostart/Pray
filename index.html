@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pray: prayer times for Outlook</title>
+  <meta name="description" content="Turn daily prayer times into calendar events that block your Outlook calendar.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Pray</h1>
+      <p class="lede">Block your calendar for prayer. Pick where you will be and the dates you will be there, then download a calendar file that Outlook imports as Busy events with a reminder.</p>
+    </header>
+
+    <form id="form" novalidate>
+      <fieldset>
+        <legend>Location</legend>
+        <div class="row">
+          <label class="grow">City
+            <input id="city" type="search" placeholder="e.g. Dubai, London, Cairo" autocomplete="off">
+          </label>
+          <button type="button" id="search">Search</button>
+          <button type="button" id="geolocate" class="secondary">Use my location</button>
+        </div>
+        <ul id="results" class="results" hidden></ul>
+        <div id="map" class="map" aria-label="Map: click to choose a place"></div>
+        <p class="hint" id="map-hint">Or click the map to choose the place you will be.</p>
+        <div class="row">
+          <label>Latitude <input id="lat" type="number" step="any" min="-90" max="90" required></label>
+          <label>Longitude <input id="lon" type="number" step="any" min="-180" max="180" required></label>
+          <label class="grow">Time zone <input id="tz" type="text" list="tz-list" required></label>
+          <datalist id="tz-list"></datalist>
+        </div>
+        <p id="place" class="hint"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Calculation</legend>
+        <div class="row">
+          <label class="grow">Method <select id="method"></select></label>
+          <label>Asr
+            <select id="madhab">
+              <option value="shafi">Standard (Shafi, Maliki, Hanbali)</option>
+              <option value="hanafi">Hanafi</option>
+            </select>
+          </label>
+          <label>High latitude rule
+            <select id="hlr">
+              <option value="auto">Automatic</option>
+              <option value="middleofthenight">Middle of the night</option>
+              <option value="seventhofthenight">Seventh of the night</option>
+              <option value="twilightangle">Twilight angle</option>
+            </select>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Dates</legend>
+        <p class="hint">Only these days get blocked, so you can make a file just for a trip.</p>
+        <div class="row">
+          <label>From <input id="start" type="date" required></label>
+          <label>To <input id="end" type="date" required></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Events</legend>
+        <div class="row checks" id="prayers"></div>
+        <div class="row">
+          <label>Block for (minutes) <input id="duration" type="number" min="5" max="180" value="15"></label>
+          <label>Start after adhan (minutes) <input id="offset" type="number" min="0" max="120" value="0"></label>
+          <label>Reminder before (minutes, 0 for none) <input id="reminder" type="number" min="0" max="120" value="10"></label>
+        </div>
+        <div class="row">
+          <label class="check"><input id="jumuah" type="checkbox" checked> Show Friday Dhuhr as Jumu'ah</label>
+          <label>Jumu'ah block (minutes) <input id="jumuahDuration" type="number" min="15" max="180" value="60"></label>
+        </div>
+      </fieldset>
+
+      <p id="error" class="error" role="alert" hidden></p>
+
+      <div class="actions">
+        <button type="submit" id="download" class="primary">Download .ics for Outlook</button>
+        <span id="summary" class="hint"></span>
+      </div>
+    </form>
+
+    <section id="preview-section" hidden>
+      <h2>Preview</h2>
+      <div class="table-wrap">
+        <table id="preview">
+          <thead><tr><th>Date</th><th>Fajr</th><th>Sunrise</th><th>Dhuhr</th><th>Asr</th><th>Maghrib</th><th>Isha</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="help">
+      <h2>Adding it to Outlook</h2>
+      <ul>
+        <li><strong>Outlook on the web or new Outlook:</strong> Calendar, then Add calendar, then Upload from file. Pick the downloaded file and the calendar to add the events to.</li>
+        <li><strong>Classic Outlook for Windows:</strong> File, then Open &amp; Export, then Import/Export, then "Import an iCalendar (.ics) or vCalendar file". Choose Import to put the events in your main calendar so they show as Busy to others.</li>
+        <li><strong>Outlook for Mac:</strong> File, then Import, or drag the file onto the calendar.</li>
+      </ul>
+      <p class="hint">Re-importing the same dates for the same place updates the existing events rather than duplicating them in Outlook clients that honour event IDs. Times are computed in your browser with <a href="https://github.com/batoulapps/adhan-js">adhan-js</a>; city search and time zone lookup use <a href="https://open-meteo.com/">Open-Meteo</a>; the map uses <a href="https://leafletjs.com/">Leaflet</a> and <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>.</p>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="vendor/adhan.umd.min.js"></script>
+  <script src="prayer-ics.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
